@@ -10,33 +10,20 @@ class MyApp extends StatelessWidget {
     return ThemeProvider(
       saveThemesOnChange: true,
       loadThemeOnInit: false,
-      onInitCallback: (controller, previouslySavedThemeFuture) async {
-        String? savedTheme = await previouslySavedThemeFuture;
-        if (savedTheme != null) {
-          controller.setTheme(savedTheme);
-        } else {
-          Brightness platformBrightness =
-              SchedulerBinding.instance?.window.platformBrightness ??
-                  Brightness.light;
-          if (platformBrightness == Brightness.dark) {
-            controller.setTheme('dark');
-          } else {
-            controller.setTheme('light');
-          }
-          controller.forgetSavedTheme();
-        }
-      },
-      themes: <AppTheme>[
-        AppTheme.light(id: 'light'),
-        AppTheme.dark(id: 'dark'),
-      ],
       child: ThemeConsumer(
         child: Builder(
-          builder: (themeContext) => MaterialApp(
-            theme: ThemeProvider.themeOf(themeContext).data,
-            title: 'Material App',
-            home: HomePage(),
-          ),
+          builder: (themeContext) {
+            var theme = ThemeProvider.themeOf(themeContext);
+            return MaterialApp(
+              themeMode: ThemeMode.dark,
+              theme: theme.light,
+              darkTheme: theme.dark,
+              highContrastTheme: theme.highContrastLight,
+              highContrastDarkTheme: theme.highContrastDark,
+              title: 'Material App',
+              home: HomePage(),
+            );
+          },
         ),
       ),
     );

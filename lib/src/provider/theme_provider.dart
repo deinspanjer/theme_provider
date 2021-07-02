@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:theme_provider/src/data/composite_app_theme.dart';
 import 'package:theme_provider/theme_provider.dart';
 
 import '../controller/theme_controller.dart';
@@ -20,8 +21,7 @@ class ThemeProvider extends StatelessWidget {
   final String? defaultThemeId;
 
   /// List of themes to be available for child listeners.
-  /// If [themes] are not supplies [AppTheme.light()] and [AppTheme.dark()] is assumed.
-  /// If [themes] are supplied, there have to be at least 2 [AppTheme] objects inside the list.
+  /// If [themes] are not supplies [CompositeAppTheme.baselineMaterial] will be used.
   final List<AppTheme> themes;
 
   /// Whether to persist the theme on change.
@@ -33,7 +33,7 @@ class ThemeProvider extends StatelessWidget {
   /// If `true`, default [onInitCallback] will be executed instead.
   final bool loadThemeOnInit;
 
-  /// The callback which is to be called when the [ThemeController] is first initialed.
+  /// A custom callback which is to be called when the [ThemeController] is first initialized.
   final ThemeControllerHandler? onInitCallback;
 
   /// The callback which is to be called when the [AppTheme] is changed.
@@ -60,9 +60,9 @@ class ThemeProvider extends StatelessWidget {
     required this.child,
     this.saveThemesOnChange = false,
     this.loadThemeOnInit = false,
-  })  : this.themes = themes ?? [AppTheme.light(), AppTheme.dark()],
+  })  : this.themes = themes ?? [CompositeAppTheme.baselineMaterial()],
         super(key: key) {
-    assert(this.themes.length >= 2, "Theme list must have at least 2 themes.");
+    assert(this.themes.length >= 1, "Theme list must not be empty.");
   }
 
   /// Gives reference to a [ThemeCommand] of the nearest [ThemeProvider] up the widget tree

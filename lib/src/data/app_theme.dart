@@ -2,19 +2,56 @@ import 'package:flutter/material.dart';
 
 import '../../theme_provider.dart';
 
+/// Enumeration of the different types of ThemeData that might be available
+/// in the AppTheme object
+enum AppThemeDataType { light, dark, highContrastLight, highContrastDark }
+
 ///  Main App theme object.
 ///
 /// Usage:
 /// ```dart
-///  AppTheme<ColorClass>(
-///     data: ThemeData(),
-///     options: ColorClass(),
+///  AppTheme<MyOptionClass>(
+///     id: 'my_custom_theme',
+///     data: ThemeData.from(
+///       colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.amber),
+///     ),
+///     options: MyOptionClass(),
 ///   ),
 /// ```
 @immutable
 class AppTheme {
-  /// [ThemeData] associated with the [AppTheme]
-  final ThemeData data;
+  final ThemeData _data;
+
+  /// Active [ThemeData] associated with the [AppTheme]
+  ThemeData get data {
+    final ThemeMode mode = widget.themeMode ?? ThemeMode.system;
+    final Brightness platformBrightness = MediaQuery.platformBrightnessOf(context);
+    final bool useDarkTheme = mode == ThemeMode.dark
+        || (mode == ThemeMode.system && platformBrightness == ui.Brightness.dark);
+    final bool highContrast = MediaQuery.highContrastOf(context);
+    ThemeData? theme;
+
+    if (useDarkTheme && highContrast && widget.highContrastDarkTheme != null) {
+      theme = widget.highContrastDarkTheme;
+    } else if (useDarkTheme && widget.darkTheme != null) {
+      theme = widget.darkTheme;
+    } else if (highContrast && widget.highContrastTheme != null) {
+      theme = widget.highContrastTheme;
+    }
+    theme ??= widget.theme ?? ThemeData.light();
+  }
+
+  /// Light [ThemeData] associated with the [AppTheme]
+  ThemeData? get light => _data;
+
+  /// Dark [ThemeData] associated with the [AppTheme]
+  ThemeData? get dark => null;
+
+  /// High contrast light [ThemeData] associated with the [AppTheme]
+  ThemeData? get highContrastLight => null;
+
+  /// High contrast dark [ThemeData] associated with the [AppTheme]
+  ThemeData? get highContrastDark => null;
 
   /// Passed options object. Use this object to pass
   /// additional data that should be associated with the theme.
@@ -70,13 +107,13 @@ class AppTheme {
   ///
   /// [options] can ba any object. Use it to pass
   ///
-  /// [description] is optional. If not given it takes default to as 'Light Theme' or 'Dark Theme'.
+  /// [description] is required and it is a human friendly name for the AppTheme. Must be less than 30 characters.
   AppTheme({
     required this.id,
-    required this.data,
+    required data,
     required this.description,
     this.options,
-  }) {
+  }) : this._data = data {
     assert(description.length < 30, "Theme description too long ($id)");
     assert(id.isNotEmpty, "Id cannot be empty");
     assert(id.toLowerCase() == id, "Id has to be a lowercase string");
@@ -88,7 +125,7 @@ class AppTheme {
     return AppTheme(
       data: ThemeData.light(),
       id: id ?? "default_light_theme",
-      description: "Android Default Light Theme",
+      description: "Default Light Theme",
     );
   }
 
@@ -97,7 +134,7 @@ class AppTheme {
     return AppTheme(
       data: ThemeData.dark(),
       id: id ?? "default_dark_theme",
-      description: "Android Default Dark Theme",
+      description: "Default Dark Theme",
     );
   }
 
@@ -128,4 +165,12 @@ class AppTheme {
       options: options ?? this.options,
     );
   }
+
+  /// Identity of [AppTheme] is based on its id field.
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is AppTheme && runtimeType == other.runtimeType && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
